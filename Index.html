@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)file:///C:/Users/banet/Downloads/auto-flip-app.html -->
+<html lang="sr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Auto Flip</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0e0e14;
+  --surface: #16181f;
+  --card: #1c1f2a;
+  --border: #252836;
+  --accent: #e94560;
+  --accent2: #f5a623;
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --text: #e8e8f0;
+  --muted: #6b6d82;
+  --radius: 12px;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* HEADER */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.logo { font-size: 1.1rem; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+.logo span { color: var(--accent); }
+
+.sync-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+.sync-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sync-btn.syncing { color: var(--accent2); border-color: var(--accent2); animation: pulse 1s infinite; }
+.sync-btn.synced { color: var(--green); border-color: var(--green); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.tab {
+  flex: 1;
+  padding: 7px 4px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* CONTENT */
+.content { padding: 14px; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* STAT CARDS */
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
+}
+
+.stat .val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.stat .lbl {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+
+/* CARDS */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-head-left { flex: 1; min-width: 0; }
+
+.card-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.card-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.pos { background: rgba(46,204,113,0.15); color: var(--green); }
+.neg { background: rgba(231,76,60,0.15); color: var(--red); }
+.neu { background: var(--border); color: var(--muted); }
+
+.arrow {
+  font-size: 0.7rem;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+.collapsed .arrow { transform: rotate(-90deg); }
+
+.card-body { padding: 12px 14px; border-top: 1px solid var(--border); }
+
+/* FIELDS */
+.field-group { margin-bottom: 10px; }
+
+.field-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field.full { grid-column: 1 / -1; }
+
+.field input, .field select, .field textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 0.83rem;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--accent);
+}
+
+.field select option { background: var(--card); }
+.field textarea { resize: none; height: 54px; }
+
+/* ROWS */
+.input-row {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+
+.input-row input[type="text"],
+.input-row input[type="number"] {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 0.83rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input-row input[type="text"] { flex: 1; }
+.input-row input[type="number"] { width: 110px; text-align: right; }
+.input-row input:focus { border-color: var(--accent); }
+
+.del-btn {
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 4px;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.del-btn:hover { opacity: 1; }
+
+.add-row-btn {
+  width: 100%;
+  padding: 7px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: all 0.2s;
+}
+.add-row-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* SUMMARY */
+.sum-block { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+
+.sum-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 3px 0;
+}
+
+.sum-row.total {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text);
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+  padding-top: 8px;
+}
+
+.sum-row.total .profit { color: var(--green); }
+.sum-row.total .loss { color: var(--red); }
+
+/* NEW BTN */
+.new-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.2s, transform 0.1s;
+}
+.new-btn:active { transform: scale(0.98); }
+.new-btn:hover { background: #c73652; }
+
+/* GLOBAL */
+.global-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+}
+
+.global-card h3 {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.g-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.g-row:last-child { border-bottom: none; }
+
+.g-row.big {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+}
+
+/* PROGRESS BAR */
+.prog-wrap { margin: 8px 0 4px; }
+.prog-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+.prog-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s; }
+
+/* EMPTY STATE */
+.empty { text-align: center; color: var(--muted); padding: 32px 0; font-size: 0.85rem; }
+
+/* CAR HEADER INPUT */
+.car-meta {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.car-meta input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  outline: none;
+}
+
+.car-meta input:focus { border-color: var(--accent); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  z-index: 999;
+  transition: transform 0.3s;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok { border-color: var(--green); color: var(--green); }
+.toast.err { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">🚗 Auto<span>Flip</span></div>
+    <button class="sync-btn" id="syncBtn" onclick="syncData()">
+      <span id="syncIcon">☁</span>
+      <span id="syncText">Sačuvaj</span>
+    </button>
+  </div>
+  <div class="tabs">
+    <button class="tab" onclick="switchTab(&#39;oprema&#39;)">🔧 Oprema</button>
+    <button class="tab" onclick="switchTab(&#39;auta&#39;)">🚘 Auta</button>
+    <button class="tab active" onclick="switchTab(&#39;alat&#39;)">🛠 Alat</button>
+    <button class="tab" onclick="switchTab(&#39;ukupno&#39;)">📊 Ukupno</button>
+  </div>
+</div>
+
+<div class="content">
+  <div class="tab-pane" id="pane-oprema">
+    <div class="card">
+      <div class="card-head" style="cursor:default;">
+        <div class="card-head-left"><div class="card-name">📦 Startna oprema</div></div>
+        <span class="badge neg">15.300 RSD nepovrać.</span>
+      </div>
+      <div class="card-body">
+        <div class="field-label">Stavke</div>
+        
+          <div class="input-row">
+            <input type="text" value="Karcher WD 3 usisivač" placeholder="Naziv opreme" oninput="data.oprema.find(x=&gt;x.id==1).naziv=this.value; autoSave(); var h=document.getElementById(&#39;oh1&#39;); if(h) h.textContent=this.value||&#39;Oprema&#39;;">
+            <input type="number" value="12300" placeholder="0" oninput="data.oprema.find(x=&gt;x.id==1).cena=parseFloat(this.value)||0; autoSave();" onblur="renderOprema();">
+            <button class="del-btn" onclick="removeOprema(1)">✕</button>
+          </div>
+        
+          <div class="input-row">
+            <input type="text" value="Punjač akumulatora 50A" placeholder="Naziv opreme" oninput="data.oprema.find(x=&gt;x.id==2).naziv=this.value; autoSave(); var h=document.getElementById(&#39;oh2&#39;); if(h) h.textContent=this.value||&#39;Oprema&#39;;">
+            <input type="number" value="3000" placeholder="0" oninput="data.oprema.find(x=&gt;x.id==2).cena=parseFloat(this.value)||0; autoSave();" onblur="renderOprema();">
+            <button class="del-btn" onclick="removeOprema(2)">✕</button>
+          </div>
+        
+          <div class="input-row">
+            <input type="text" value="Hemija (startni set)" placeholder="Naziv opreme" oninput="data.oprema.find(x=&gt;x.id==3).naziv=this.value; autoSave(); var h=document.getElementById(&#39;oh3&#39;); if(h) h.textContent=this.value||&#39;Oprema&#39;;">
+            <input type="number" value="" placeholder="0" oninput="data.oprema.find(x=&gt;x.id==3).cena=parseFloat(this.value)||0; autoSave();" onblur="renderOprema();">
+            <button class="del-btn" onclick="removeOprema(3)">✕</button>
+          </div>
+        
+        <button class="add-row-btn" onclick="addOprema()">+ Dodaj stavku</button>
+
+        <div class="field-label" style="margin-top:14px;">Povrat kroz prodaje</div>
+        <div class="prog-wrap">
+          <div class="prog-label"><span>Prodato: 0 auta</span><span>0%</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>
+        </div>
+        <div class="sum-block">
+          <div class="sum-row"><span>Uloženo ukupno</span><span>15.300 RSD</span></div>
+          <div class="sum-row"><span>Povrat po autu</span><span>0 RSD</span></div>
+          <div class="sum-row"><span>Ukupno povrać.</span><span>0 RSD</span></div>
+          <div class="sum-row total"><span>Ostalo za povrat</span><span class="loss">15.300 RSD</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-pane" id="pane-auta">
+      <div class="card ">
+        <div class="card-head" onclick="toggleAuto(1783970598248)">
+          <div class="card-head-left">
+            <div class="card-name" id="ctitle-1783970598248">🚘 Toyota Yaris 2004</div>
+            <div class="card-sub">105.300 RSD kupovina</div>
+          </div>
+          <div class="card-head-right">
+            <span class="badge neg">-105.300 RSD</span>
+            <span class="arrow">▼</span>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <div class="car-meta">
+            <input type="text" value="Toyota Yaris 2004" placeholder="Naziv auta (npr. Golf 5 2007)" oninput="data.auta.find(a=&gt;a.id==1783970598248).naziv=this.value; autoSave(); var h=document.getElementById(&#39;ctitle-1783970598248&#39;); if(h) h.textContent=&#39;🚘 &#39;+(this.value||&#39;Auto 1&#39;);">
+            <button class="del-btn" onclick="removeAuto(1783970598248)">🗑</button>
+          </div>
+
+          <div class="field-label">Kupovina</div>
+          <div class="input-row">
+            <input type="text" value="Cena kupovine" disabled="" style="color:var(--muted);flex:1;">
+            <input type="number" value="105300" placeholder="0" oninput="data.auta.find(a=&gt;a.id==1783970598248).kupovina=parseFloat(this.value)||0; autoSave();" onblur="renderAuta();">
+          </div>
+
+          <div class="field-label">Troškovi</div>
+          
+          <button class="add-row-btn" onclick="addTrosak(1783970598248)">+ Dodaj trošak</button>
+
+          <div class="field-label" style="margin-top:10px;">Prodaja</div>
+          <div class="input-row">
+            <input type="text" value="Cena prodaje" disabled="" style="color:var(--muted);flex:1;">
+            <input type="number" value="" placeholder="0" oninput="data.auta.find(a=&gt;a.id==1783970598248).prodaja=parseFloat(this.value)||0; autoSave();" onblur="renderAuta(); renderOprema();">
+          </div>
+
+          <div class="sum-block">
+            <div class="sum-row"><span>Kupovina</span><span>105.300 RSD</span></div>
+            <div class="sum-row"><span>Troškovi</span><span>0 RSD</span></div>
+            <div class="sum-row"><span>Prodaja</span><span>0 RSD</span></div>
+            <div class="sum-row total"><span>Zarada</span><span class="loss">-105.300 RSD</span></div>
+          </div>
+        </div>
+        
+      </div>
+    
+      <div class="card ">
+        <div class="card-head" onclick="toggleAuto(1783970598249)">
+          <div class="card-head-left">
+            <div class="card-name" id="ctitle-1783970598249">🚘 Golf 5 2006</div>
+            <div class="card-sub"></div>
+          </div>
+          <div class="card-head-right">
+            <span class="badge neg">-600 RSD</span>
+            <span class="arrow">▼</span>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <div class="car-meta">
+            <input type="text" value="Golf 5 2006" placeholder="Naziv auta (npr. Golf 5 2007)" oninput="data.auta.find(a=&gt;a.id==1783970598249).naziv=this.value; autoSave(); var h=document.getElementById(&#39;ctitle-1783970598249&#39;); if(h) h.textContent=&#39;🚘 &#39;+(this.value||&#39;Auto 2&#39;);">
+            <button class="del-btn" onclick="removeAuto(1783970598249)">🗑</button>
+          </div>
+
+          <div class="field-label">Kupovina</div>
+          <div class="input-row">
+            <input type="text" value="Cena kupovine" disabled="" style="color:var(--muted);flex:1;">
+            <input type="number" value="" placeholder="0" oninput="data.auta.find(a=&gt;a.id==1783970598249).kupovina=parseFloat(this.value)||0; autoSave();" onblur="renderAuta();">
+          </div>
+
+          <div class="field-label">Troškovi</div>
+          
+            <div class="input-row">
+              <input type="text" value="Tecnost roze litar" placeholder="Hemija, oglas, servis..." oninput="data.auta.find(a=&gt;a.id==1783970598249).troskovi[0].naziv=this.value; autoSave();">
+              <input type="number" value="600" placeholder="0" oninput="data.auta.find(a=&gt;a.id==1783970598249).troskovi[0].iznos=parseFloat(this.value)||0; autoSave();" onblur="renderAuta();">
+              <button class="del-btn" onclick="removeTrosak(1783970598249,0)">✕</button>
+            </div>
+          
+          <button class="add-row-btn" onclick="addTrosak(1783970598249)">+ Dodaj trošak</button>
+
+          <div class="field-label" style="margin-top:10px;">Prodaja</div>
+          <div class="input-row">
+            <input type="text" value="Cena prodaje" disabled="" style="color:var(--muted);flex:1;">
+            <input type="number" value="" placeholder="0" oninput="data.auta.find(a=&gt;a.id==1783970598249).prodaja=parseFloat(this.value)||0; autoSave();" onblur="renderAuta(); renderOprema();">
+          </div>
+
+          <div class="sum-block">
+            <div class="sum-row"><span>Kupovina</span><span>0 RSD</span></div>
+            <div class="sum-row"><span>Troškovi</span><span>600 RSD</span></div>
+            <div class="sum-row"><span>Prodaja</span><span>0 RSD</span></div>
+            <div class="sum-row total"><span>Zarada</span><span class="loss">-600 RSD</span></div>
+          </div>
+        </div>
+        
+      </div>
+    <button class="new-btn" onclick="addAuto()">+ Dodaj auto</button></div>
+  <div class="tab-pane active" id="pane-alat">
+    <div class="stats">
+      <div class="stat"><div class="val" style="color:var(--accent)" id="alat-total">19.300 RSD</div><div class="lbl">Uloženo</div></div>
+      <div class="stat"><div class="val">3</div><div class="lbl">Komada</div></div>
+      <div class="stat"><div class="val" style="color:var(--green)">3</div><div class="lbl">Novo</div></div>
+      <div class="stat"><div class="val" style="color:var(--accent2)">0</div><div class="lbl">Polovno</div></div>
+    </div>
+    
+        <div class="card ">
+          <div class="card-head" onclick="toggleAlat(1783970598250)">
+            <div class="card-head-left">
+              <div class="card-name" id="ah-1783970598250">Alata za farove</div>
+              <div class="card-sub">10. 6. 2026. · Farbara u kraju</div>
+            </div>
+            <div class="card-head-right">
+              <span class="badge pos">Novo</span>
+              <span class="arrow">▼</span>
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <div class="field-grid">
+              <div class="field full">
+                <input type="text" value="Alata za farove" placeholder="Naziv alata" oninput="updAlat(1783970598250,&#39;naziv&#39;,this.value)">
+              </div>
+              <div class="field">
+                <input type="number" value="4000" placeholder="Cena (RSD)" oninput="updAlat(1783970598250,&#39;cena&#39;,this.value)" onblur="renderAlat();">
+              </div>
+              <div class="field">
+                <input type="date" value="2026-06-10" onchange="updAlat(1783970598250,&#39;datum&#39;,this.value)">
+              </div>
+              <div class="field">
+                <input type="text" value="Farbara u kraju" placeholder="Gde kupljeno" onblur="updAlat(1783970598250,&#39;gde&#39;,this.value)">
+              </div>
+              <div class="field">
+                <select onchange="updAlat(1783970598250,&#39;stanje&#39;,this.value)">
+                  <option value="novo" selected="">Novo</option>
+                  <option value="polovno">Polovno</option>
+                </select>
+              </div>
+              <div class="field">
+                <input type="date" value="" placeholder="Garancija do" onchange="updAlat(1783970598250,&#39;garancija&#39;,this.value)">
+              </div>
+              <div class="field full">
+                <textarea placeholder="Napomena..." onblur="updAlat(1783970598250,&#39;napomena&#39;,this.value)"></textarea>
+              </div>
+            </div>
+            <button class="del-btn" style="width:100%;margin-top:8px;border:1px dashed var(--red);border-radius:8px;padding:7px;opacity:1;" onclick="removeAlat(1783970598250)">🗑 Obriši</button>
+          </div>
+          
+        </div>
+      
+        <div class="card ">
+          <div class="card-head" onclick="toggleAlat(1)">
+            <div class="card-head-left">
+              <div class="card-name" id="ah-1">Karcher WD 3 usisivač</div>
+              <div class="card-sub">10. 7. 2026. · Gigatron</div>
+            </div>
+            <div class="card-head-right">
+              <span class="badge pos">Novo</span>
+              <span class="arrow">▼</span>
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <div class="field-grid">
+              <div class="field full">
+                <input type="text" value="Karcher WD 3 usisivač" placeholder="Naziv alata" oninput="updAlat(1,&#39;naziv&#39;,this.value)">
+              </div>
+              <div class="field">
+                <input type="number" value="12300" placeholder="Cena (RSD)" oninput="updAlat(1,&#39;cena&#39;,this.value)" onblur="renderAlat();">
+              </div>
+              <div class="field">
+                <input type="date" value="2026-07-10" onchange="updAlat(1,&#39;datum&#39;,this.value)">
+              </div>
+              <div class="field">
+                <input type="text" value="Gigatron" placeholder="Gde kupljeno" onblur="updAlat(1,&#39;gde&#39;,this.value)">
+              </div>
+              <div class="field">
+                <select onchange="updAlat(1,&#39;stanje&#39;,this.value)">
+                  <option value="novo" selected="">Novo</option>
+                  <option value="polovno">Polovno</option>
+                </select>
+              </div>
+              <div class="field">
+                <input type="date" value="" placeholder="Garancija do" onchange="updAlat(1,&#39;garancija&#39;,this.value)">
+              </div>
+              <div class="field full">
+                <textarea placeholder="Napomena..." onblur="updAlat(1,&#39;napomena&#39;,this.value)"></textarea>
+              </div>
+            </div>
+            <button class="del-btn" style="width:100%;margin-top:8px;border:1px dashed var(--red);border-radius:8px;padding:7px;opacity:1;" onclick="removeAlat(1)">🗑 Obriši</button>
+          </div>
+          
+        </div>
+      
+        <div class="card ">
+          <div class="card-head" onclick="toggleAlat(2)">
+            <div class="card-head-left">
+              <div class="card-name" id="ah-2">Punjač akumulatora 50A</div>
+              <div class="card-sub">12. 7. 2026. · Buvljak Rakovica</div>
+            </div>
+            <div class="card-head-right">
+              <span class="badge pos">Novo</span>
+              <span class="arrow">▼</span>
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <div class="field-grid">
+              <div class="field full">
+                <input type="text" value="Punjač akumulatora 50A" placeholder="Naziv alata" oninput="updAlat(2,&#39;naziv&#39;,this.value)">
+              </div>
+              <div class="field">
+                <input type="number" value="3000" placeholder="Cena (RSD)" oninput="updAlat(2,&#39;cena&#39;,this.value)" onblur="renderAlat();">
+              </div>
+              <div class="field">
+                <input type="date" value="2026-07-12" onchange="updAlat(2,&#39;datum&#39;,this.value)">
+              </div>
+              <div class="field">
+                <input type="text" value="Buvljak Rakovica" placeholder="Gde kupljeno" onblur="updAlat(2,&#39;gde&#39;,this.value)">
+              </div>
+              <div class="field">
+                <select onchange="updAlat(2,&#39;stanje&#39;,this.value)">
+                  <option value="novo" selected="">Novo</option>
+                  <option value="polovno">Polovno</option>
+                </select>
+              </div>
+              <div class="field">
+                <input type="date" value="" placeholder="Garancija do" onchange="updAlat(2,&#39;garancija&#39;,this.value)">
+              </div>
+              <div class="field full">
+                <textarea placeholder="Napomena..." onblur="updAlat(2,&#39;napomena&#39;,this.value)"></textarea>
+              </div>
+            </div>
+            <button class="del-btn" style="width:100%;margin-top:8px;border:1px dashed var(--red);border-radius:8px;padding:7px;opacity:1;" onclick="removeAlat(2)">🗑 Obriši</button>
+          </div>
+          
+        </div>
+      
+    <button class="new-btn" onclick="addAlat()">+ Dodaj alat</button>
+  </div>
+  <div class="tab-pane" id="pane-ukupno"></div>
+</div>
+
+<div class="toast" id="toast">Greška pri čuvanju</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbwGswVPgyOgtH0spYwLrHmfqep-LjS37qFkia4LHSNVo53tDrB6XM3MAkockoj4PCUZJw/exec';
+
+let data = {
+  oprema: [
+    { id: 1, naziv: 'Karcher WD 3 usisivač', cena: 12300 },
+    { id: 2, naziv: 'Punjač akumulatora 50A', cena: 3000 },
+    { id: 3, naziv: 'Hemija (startni set)', cena: 0 },
+  ],
+  auta: [],
+  alat: [
+    { id: 1, naziv: 'Karcher WD 3 usisivač', cena: 12300, datum: '2026-07-13', gde: 'Gigatron', stanje: 'novo', garancija: '', napomena: '', collapsed: true },
+    { id: 2, naziv: 'Punjač akumulatora 50A', cena: 3000, datum: '2026-07-13', gde: 'Buvljak Rakovica', stanje: 'polovno', garancija: '', napomena: '', collapsed: true },
+  ]
+};
+
+let nextId = Date.now();
+let activeTab = 'oprema';
+let saveTimer = null;
+
+// ---- SYNC (JSONP) ----
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now();
+    const script = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 10000);
+    function cleanup() { clearTimeout(timer); delete window[cb]; script.remove(); }
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.src = url + '&callback=' + cb;
+    script.onerror = () => { cleanup(); reject(new Error('script error')); };
+    document.head.appendChild(script);
+  });
+}
+
+async function loadData() {
+  setSyncState('syncing', '...');
+  try {
+    const result = await jsonp(API + '?action=load');
+    if (result && result.oprema) {
+      data = result;
+      showToast('Podaci učitani ✓', 'ok');
+    }
+  } catch(e) {
+    showToast('Učitavanje nije uspelo', 'err');
+  }
+  setSyncState('idle', 'Sačuvaj');
+  renderAll();
+}
+
+async function syncData() {
+  setSyncState('syncing', 'Čuva...');
+  try {
+    const encoded = encodeURIComponent(JSON.stringify(data));
+    const result = await jsonp(API + '?action=save&data=' + encoded);
+    if (result === 'ok' || result === 'ok\n' || (typeof result === 'string' && result.includes('ok'))) {
+      setSyncState('synced', 'Sačuvano ✓');
+      showToast('Sačuvano u Google Sheets ✓', 'ok');
+      setTimeout(() => setSyncState('idle', 'Sačuvaj'), 2000);
+    } else {
+      throw new Error('bad response');
+    }
+  } catch(e) {
+    setSyncState('idle', 'Sačuvaj');
+    showToast('Greška pri čuvanju', 'err');
+  }
+}
+
+function setSyncState(state, text) {
+  const btn = document.getElementById('syncBtn');
+  const icon = document.getElementById('syncIcon');
+  const txt = document.getElementById('syncText');
+  btn.className = 'sync-btn' + (state !== 'idle' ? ' ' + state : '');
+  icon.textContent = state === 'syncing' ? '⟳' : state === 'synced' ? '✓' : '☁';
+  txt.textContent = text;
+}
+
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(syncData, 3000);
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// ---- HELPERS ----
+function fmt(n) { return (parseFloat(n)||0).toLocaleString('sr-RS') + ' RSD'; }
+function switchTab(name) {
+  activeTab = name;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['oprema','auta','alat','ukupno'][i] === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + name).classList.add('active');
+  if (name === 'ukupno') renderUkupno();
+}
+
+function renderAll() { renderOprema(); renderAuta(); renderAlat(); }
+
+// ---- OPREMA ----
+function addOprema() { data.oprema.push({id: nextId++, naziv:'', cena:0}); renderOprema(); autoSave(); }
+function removeOprema(id) { data.oprema = data.oprema.filter(o=>o.id!==id); renderOprema(); autoSave(); }
+
+function renderOprema() {
+  const prodatih = data.auta.filter(a => (parseFloat(a.prodaja)||0) > 0).length;
+  const total = data.oprema.reduce((s,o) => s+(parseFloat(o.cena)||0), 0);
+  const ppA = prodatih > 0 ? total/prodatih : 0;
+  const povr = ppA * prodatih;
+  const pct = total > 0 ? Math.min(100, (povr/total)*100) : 0;
+  const ost = total - povr;
+
+  document.getElementById('pane-oprema').innerHTML = `
+    <div class="card">
+      <div class="card-head" style="cursor:default;">
+        <div class="card-head-left"><div class="card-name">📦 Startna oprema</div></div>
+        <span class="badge ${ost>0?'neg':'pos'}">${fmt(ost)} nepovrać.</span>
+      </div>
+      <div class="card-body">
+        <div class="field-label">Stavke</div>
+        ${data.oprema.map(o => `
+          <div class="input-row">
+            <input type="text" value="${o.naziv}" placeholder="Naziv opreme"
+              oninput="data.oprema.find(x=>x.id==${o.id}).naziv=this.value; autoSave(); var h=document.getElementById('oh${o.id}'); if(h) h.textContent=this.value||'Oprema';" />
+            <input type="number" value="${o.cena||''}" placeholder="0"
+              oninput="data.oprema.find(x=>x.id==${o.id}).cena=parseFloat(this.value)||0; autoSave();"
+              onblur="renderOprema();" />
+            <button class="del-btn" onclick="removeOprema(${o.id})">✕</button>
+          </div>
+        `).join('')}
+        <button class="add-row-btn" onclick="addOprema()">+ Dodaj stavku</button>
+
+        <div class="field-label" style="margin-top:14px;">Povrat kroz prodaje</div>
+        <div class="prog-wrap">
+          <div class="prog-label"><span>Prodato: ${prodatih} auta</span><span>${Math.round(pct)}%</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="sum-block">
+          <div class="sum-row"><span>Uloženo ukupno</span><span>${fmt(total)}</span></div>
+          <div class="sum-row"><span>Povrat po autu</span><span>${fmt(ppA)}</span></div>
+          <div class="sum-row"><span>Ukupno povrać.</span><span>${fmt(povr)}</span></div>
+          <div class="sum-row total"><span>Ostalo za povrat</span><span class="${ost>0?'loss':'profit'}">${fmt(ost)}</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- AUTA ----
+function addAuto() {
+  data.auta.push({id:nextId++, naziv:'', collapsed:false, kupovina:0, troskovi:[], prodaja:0});
+  renderAuta(); autoSave();
+}
+function removeAuto(id) { if(!confirm('Obriši ovo auto?')) return; data.auta=data.auta.filter(a=>a.id!==id); renderAuta(); renderOprema(); autoSave(); }
+function addTrosak(id) { data.auta.find(a=>a.id===id).troskovi.push({naziv:'',iznos:0}); renderAuta(); autoSave(); }
+function removeTrosak(id,i) { data.auta.find(a=>a.id===id).troskovi.splice(i,1); renderAuta(); autoSave(); }
+function toggleAuto(id) { const a=data.auta.find(x=>x.id===id); a.collapsed=!a.collapsed; renderAuta(); }
+function profit(car) { return (parseFloat(car.prodaja)||0)-(parseFloat(car.kupovina)||0)-car.troskovi.reduce((s,t)=>s+(parseFloat(t.iznos)||0),0); }
+
+function renderAuta() {
+  const el = document.getElementById('pane-auta');
+  if (data.auta.length === 0) {
+    el.innerHTML = '<div class="empty">Još nema auta.<br>Dodaj prvi flip!</div><button class="new-btn" onclick="addAuto()">+ Dodaj auto</button>';
+    return;
+  }
+  el.innerHTML = data.auta.map((car,ci) => {
+    const p = profit(car);
+    const tr = car.troskovi.reduce((s,t)=>s+(parseFloat(t.iznos)||0),0);
+    const label = car.naziv || ('Auto ' + (ci+1));
+    return `
+      <div class="card ${car.collapsed?'collapsed':''}">
+        <div class="card-head" onclick="toggleAuto(${car.id})">
+          <div class="card-head-left">
+            <div class="card-name" id="ctitle-${car.id}">🚘 ${label}</div>
+            <div class="card-sub">${car.kupovina?fmt(car.kupovina)+' kupovina':''}</div>
+          </div>
+          <div class="card-head-right">
+            <span class="badge ${p>0?'pos':p<0?'neg':'neu'}">${fmt(p)}</span>
+            <span class="arrow">▼</span>
+          </div>
+        </div>
+        ${!car.collapsed ? `
+        <div class="card-body">
+          <div class="car-meta">
+            <input type="text" value="${car.naziv}" placeholder="Naziv auta (npr. Golf 5 2007)"
+              oninput="data.auta.find(a=>a.id==${car.id}).naziv=this.value; autoSave(); var h=document.getElementById('ctitle-${car.id}'); if(h) h.textContent='🚘 '+(this.value||'Auto ${ci+1}');" />
+            <button class="del-btn" onclick="removeAuto(${car.id})">🗑</button>
+          </div>
+
+          <div class="field-label">Kupovina</div>
+          <div class="input-row">
+            <input type="text" value="Cena kupovine" disabled style="color:var(--muted);flex:1;" />
+            <input type="number" value="${car.kupovina||''}" placeholder="0"
+              oninput="data.auta.find(a=>a.id==${car.id}).kupovina=parseFloat(this.value)||0; autoSave();"
+              onblur="renderAuta();" />
+          </div>
+
+          <div class="field-label">Troškovi</div>
+          ${car.troskovi.map((t,i) => `
+            <div class="input-row">
+              <input type="text" value="${t.naziv}" placeholder="Hemija, oglas, servis..."
+                oninput="data.auta.find(a=>a.id==${car.id}).troskovi[${i}].naziv=this.value; autoSave();" />
+              <input type="number" value="${t.iznos||''}" placeholder="0"
+                oninput="data.auta.find(a=>a.id==${car.id}).troskovi[${i}].iznos=parseFloat(this.value)||0; autoSave();"
+                onblur="renderAuta();" />
+              <button class="del-btn" onclick="removeTrosak(${car.id},${i})">✕</button>
+            </div>
+          `).join('')}
+          <button class="add-row-btn" onclick="addTrosak(${car.id})">+ Dodaj trošak</button>
+
+          <div class="field-label" style="margin-top:10px;">Prodaja</div>
+          <div class="input-row">
+            <input type="text" value="Cena prodaje" disabled style="color:var(--muted);flex:1;" />
+            <input type="number" value="${car.prodaja||''}" placeholder="0"
+              oninput="data.auta.find(a=>a.id==${car.id}).prodaja=parseFloat(this.value)||0; autoSave();"
+              onblur="renderAuta(); renderOprema();" />
+          </div>
+
+          <div class="sum-block">
+            <div class="sum-row"><span>Kupovina</span><span>${fmt(car.kupovina)}</span></div>
+            <div class="sum-row"><span>Troškovi</span><span>${fmt(tr)}</span></div>
+            <div class="sum-row"><span>Prodaja</span><span>${fmt(car.prodaja)}</span></div>
+            <div class="sum-row total"><span>Zarada</span><span class="${p>=0?'profit':'loss'}">${fmt(p)}</span></div>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('') + '<button class="new-btn" onclick="addAuto()">+ Dodaj auto</button>';
+}
+
+// ---- ALAT ----
+function addAlat() {
+  const today = new Date().toISOString().split('T')[0];
+  data.alat.unshift({id:nextId++, naziv:'', cena:0, datum:today, gde:'', stanje:'novo', garancija:'', napomena:'', collapsed:false});
+  renderAlat(); autoSave();
+}
+function removeAlat(id) { if(!confirm('Obriši?')) return; data.alat=data.alat.filter(a=>a.id!==id); renderAlat(); autoSave(); }
+function toggleAlat(id) { const a=data.alat.find(x=>x.id===id); a.collapsed=!a.collapsed; renderAlat(); }
+
+function updAlat(id, field, value) {
+  data.alat.find(a=>a.id===id)[field] = field==='cena' ? (parseFloat(value)||0) : value;
+  autoSave();
+  if (field==='stanje') renderAlat();
+  if (field==='naziv') { const h=document.getElementById('ah-'+id); if(h) h.textContent=value||'Novi alat'; }
+  if (field==='cena') renderAlatStats();
+}
+
+function renderAlatStats() {
+  const total = data.alat.reduce((s,a)=>s+(parseFloat(a.cena)||0),0);
+  const el = document.getElementById('alat-total');
+  if(el) el.textContent = fmt(total);
+}
+
+function renderAlat() {
+  const total = data.alat.reduce((s,a)=>s+(parseFloat(a.cena)||0),0);
+  const novo = data.alat.filter(a=>a.stanje==='novo').length;
+  const pol = data.alat.filter(a=>a.stanje==='polovno').length;
+
+  document.getElementById('pane-alat').innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="val" style="color:var(--accent)" id="alat-total">${fmt(total)}</div><div class="lbl">Uloženo</div></div>
+      <div class="stat"><div class="val">${data.alat.length}</div><div class="lbl">Komada</div></div>
+      <div class="stat"><div class="val" style="color:var(--green)">${novo}</div><div class="lbl">Novo</div></div>
+      <div class="stat"><div class="val" style="color:var(--accent2)">${pol}</div><div class="lbl">Polovno</div></div>
+    </div>
+    ${data.alat.map(a => {
+      const datumFmt = a.datum ? new Date(a.datum).toLocaleDateString('sr-RS') : '–';
+      return `
+        <div class="card ${a.collapsed?'collapsed':''}">
+          <div class="card-head" onclick="toggleAlat(${a.id})">
+            <div class="card-head-left">
+              <div class="card-name" id="ah-${a.id}">${a.naziv||'Novi alat'}</div>
+              <div class="card-sub">${datumFmt} · ${a.gde||'–'}</div>
+            </div>
+            <div class="card-head-right">
+              <span class="badge ${a.stanje==='novo'?'pos':'neu'}">${a.stanje==='novo'?'Novo':'Polovno'}</span>
+              <span class="arrow">▼</span>
+            </div>
+          </div>
+          ${!a.collapsed ? `
+          <div class="card-body">
+            <div class="field-grid">
+              <div class="field full">
+                <input type="text" value="${a.naziv}" placeholder="Naziv alata"
+                  oninput="updAlat(${a.id},'naziv',this.value)" />
+              </div>
+              <div class="field">
+                <input type="number" value="${a.cena||''}" placeholder="Cena (RSD)"
+                  oninput="updAlat(${a.id},'cena',this.value)"
+                  onblur="renderAlat();" />
+              </div>
+              <div class="field">
+                <input type="date" value="${a.datum}"
+                  onchange="updAlat(${a.id},'datum',this.value)" />
+              </div>
+              <div class="field">
+                <input type="text" value="${a.gde}" placeholder="Gde kupljeno"
+                  onblur="updAlat(${a.id},'gde',this.value)" />
+              </div>
+              <div class="field">
+                <select onchange="updAlat(${a.id},'stanje',this.value)">
+                  <option value="novo" ${a.stanje==='novo'?'selected':''}>Novo</option>
+                  <option value="polovno" ${a.stanje==='polovno'?'selected':''}>Polovno</option>
+                </select>
+              </div>
+              <div class="field">
+                <input type="date" value="${a.garancija}" placeholder="Garancija do"
+                  onchange="updAlat(${a.id},'garancija',this.value)" />
+              </div>
+              <div class="field full">
+                <textarea placeholder="Napomena..."
+                  onblur="updAlat(${a.id},'napomena',this.value)">${a.napomena}</textarea>
+              </div>
+            </div>
+            <button class="del-btn" style="width:100%;margin-top:8px;border:1px dashed var(--red);border-radius:8px;padding:7px;opacity:1;" onclick="removeAlat(${a.id})">🗑 Obriši</button>
+          </div>
+          ` : `
+          <div style="padding:6px 14px 10px;display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);">
+            <span>${datumFmt} · ${a.gde||'–'}</span>
+            <span style="color:var(--accent);font-weight:700;">${fmt(a.cena)}</span>
+          </div>
+          `}
+        </div>
+      `;
+    }).join('')}
+    <button class="new-btn" onclick="addAlat()">+ Dodaj alat</button>
+  `;
+}
+
+// ---- UKUPNO ----
+function renderUkupno() {
+  const totalOprema = data.oprema.reduce((s,o)=>s+(parseFloat(o.cena)||0),0);
+  const prodatih = data.auta.filter(a=>(parseFloat(a.prodaja)||0)>0).length;
+  const ppA = prodatih>0 ? totalOprema/prodatih : 0;
+  const povr = ppA*prodatih;
+  const opOst = totalOprema - povr;
+  const ukZarada = data.auta.reduce((s,a)=>s+profit(a),0);
+  const stvarna = ukZarada - opOst;
+  const totalAlat = data.alat.reduce((s,a)=>s+(parseFloat(a.cena)||0),0);
+
+  document.getElementById('pane-ukupno').innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="val" style="color:${stvarna>=0?'var(--green)':'var(--red)'}">${fmt(stvarna)}</div><div class="lbl">Stvarna zarada</div></div>
+      <div class="stat"><div class="val">${data.auta.length}</div><div class="lbl">Ukupno auta</div></div>
+      <div class="stat"><div class="val" style="color:var(--green)">${prodatih}</div><div class="lbl">Prodato</div></div>
+      <div class="stat"><div class="val" style="color:var(--accent)">${fmt(totalAlat)}</div><div class="lbl">Alat ukupno</div></div>
+    </div>
+    <div class="global-card">
+      <h3>📊 Finansijski pregled</h3>
+      <div class="g-row"><span>Uloženo u opremu</span><span>${fmt(totalOprema)}</span></div>
+      <div class="g-row"><span>Povrać. kroz prodaje</span><span>${fmt(povr)}</span></div>
+      <div class="g-row"><span>Oprema – ostatak</span><span>${fmt(opOst)}</span></div>
+      <div class="g-row"><span>Zarada od prodaja</span><span>${fmt(ukZarada)}</span></div>
+      <div class="g-row big" style="color:${stvarna>=0?'var(--green)':'var(--red)'}">
+        <span style="color:var(--text)">STVARNA ZARADA</span>
+        <span>${fmt(stvarna)}</span>
+      </div>
+    </div>
+    <div class="global-card">
+      <h3>🛠 Alat pregled</h3>
+      <div class="g-row"><span>Komada alata</span><span>${data.alat.length}</span></div>
+      <div class="g-row"><span>Novo</span><span>${data.alat.filter(a=>a.stanje==='novo').length}</span></div>
+      <div class="g-row"><span>Polovno</span><span>${data.alat.filter(a=>a.stanje==='polovno').length}</span></div>
+      <div class="g-row big"><span style="color:var(--text)">UKUPNO ULOŽENO</span><span style="color:var(--accent)">${fmt(totalAlat)}</span></div>
+    </div>
+  `;
+}
+
+// INIT
+loadData();
+</script>
+
+
+</body></html>
